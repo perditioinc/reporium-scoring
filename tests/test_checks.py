@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+from datetime import datetime, timedelta, timezone
 
 import httpx
 import respx
@@ -69,7 +70,13 @@ async def test_activity_full():
     """Repo pushed yesterday with 11 commits and releases passes all activity checks."""
     respx.get(f"{GITHUB_API}/repos/{OWNER}/{REPO}").mock(
         return_value=httpx.Response(
-            200, json={"pushed_at": "2026-03-16T10:00:00Z", "has_issues": True}
+            200,
+            json={
+                "pushed_at": (datetime.now(timezone.utc) - timedelta(days=1)).strftime(
+                    "%Y-%m-%dT%H:%M:%SZ"
+                ),
+                "has_issues": True,
+            }
         )
     )
     respx.get(f"{GITHUB_API}/repos/{OWNER}/{REPO}/commits", params={"per_page": "11"}).mock(
